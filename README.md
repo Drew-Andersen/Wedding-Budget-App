@@ -1,2 +1,2 @@
-# Logistics-Auto-Yard-Check
-A software for logistics companies to use in order to make yard checks easier and faster.
+# Wedding Budget Software
+Allows for couples to track how much they are spending on a wedding.
