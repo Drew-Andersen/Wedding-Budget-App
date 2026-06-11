@@ -1,42 +1,210 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
+
+*, 
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body {
+  font-family: 'Jost', sans-serif;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+input,
+select,
+textarea {
+  font-family: 'Jost', sans-serif;
+  outline: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+button {
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4bfb0;
+  border-radius: 3px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 22px;
+  font-size: 0.88rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b5998a;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+.tab-btn.active {
+  color: #6b4c3b;
+  border-bottom: 2px solid #c9a96e;
+}
+.tab-btn:hover {
+  color: #6b4c3b;
+}
+
+.item-row {
+  transition: background 0.15s;
+}
+.item-row:hover {
+  background: #fdf5ef !important;
+}
+.del-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.item-row:hover .del-btn {
+  opacity: 1;
+}
+
+.chip-select {
+  appearance: none;
+  border: 1px solid #e5d9d0;
+  border-radius: 99px;
+  padding: 3px 26px 3px 10px;
+  font-size: 0.78rem;
+  background: white
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b5998a'/%3E%3C/svg%3E")
+    no-repeat right 8px center;
+  color: #5a3e31;
+  cursor: pointer;
+}
+
+.edit-input {
+  border: none;
+  border-bottom: 1.5px solid #c9a96e;
+  background: transparent;
+  font-size: 0.88rem;
+  color: #3d2c25;
+  width: 100%;
+  padding: 2px 0;
+  font-family: 'Jost', sans-serif;
+}
+
+.add-btn {
+  background: #6b4c3b;
+  color: #f9f0e8;
+  border: none;
+  border-radius: 99px;
+  padding: 9px 24px;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background 0.2s;
+}
+.add-btn:hover {
+  background: #4e3128;
+}
+
+.outline-btn {
+  background: none;
+  color: #6b4c3b;
+  border: 1.5px solid #c9a96e;
+  border-radius: 99px;
+  padding: 7px 18px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.outline-btn:hover {
+  background: #f4e8de;
 }
 
 .card {
-  padding: 2em;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 18px rgba(107, 76, 59, 0.07);
 }
 
-.read-the-docs {
-  color: #888;
+.viewer-badge {
+  background: #f0e6de;
+  color: #8a6050;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: 'Jost', sans-serif;
+  padding: 4px 12px;
+  border-radius: 99px;
+}
+
+.role-card {
+  border: 2px solid #e5d9d0;
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  text-align: left;
+  width: 100%;
+}
+.role-card:hover {
+  border-color: #c9a96e;
+  background: #fdf9f5;
+}
+.role-card.selected {
+  border-color: #c9a96e;
+  background: #fdf9f5;
+  box-shadow: 0 0 0 3px #c9a96e22;
+}
+
+.auth-input {
+  width: 100%;
+  border: 1.5px solid #e5d9d0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 0.95rem;
+  color: #3d2c25;
+  font-family: 'Jost', sans-serif;
+  transition: border-color 0.2s;
+}
+.auth-input:focus {
+  border-color: #c9a96e;
+}
+.auth-input.error {
+  border-color: #c47b7b;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #6b4c3b, #3d2c25);
+  color: #f9f0e8;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  width: 100%;
+  transition: opacity 0.2s;
+}
+.primary-btn:hover {
+  opacity: 0.88;
+}
+.primary-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #c9a96e;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  padding: 0;
+  font-family: 'Jost', sans-serif;
+  cursor: pointer;
+}
+.link-btn:hover {
+  color: #6b4c3b;
 }

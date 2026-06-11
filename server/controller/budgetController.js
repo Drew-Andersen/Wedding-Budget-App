@@ -1,10 +1,9 @@
 const pool = require("../db")
-const { requireAuth, requireEditor } = require("../middleware/auth")
 
 async function getItems (req, res) {
     try {
         const result = await pool.query(
-            `SELECT id, category, name
+            `SELECT id, category, name,
                 estimate::float, actual::float, paid::float,
                 paid_by, status, notes, position, created_at, updated_at
             FROM budget_items
@@ -23,7 +22,7 @@ async function postItems (req, res) {
     const { category, name, estimate, actual, paid, paid_by, status, notes } = req.body
 
     if (!name?.trim()) {
-        return res.status(400).json({ error: "Item nae is required" })
+        return res.status(400).json({ error: "Item name is required" })
     }
 
     try {
@@ -34,11 +33,11 @@ async function postItems (req, res) {
         const position = posResult.rows[0].next_pos
 
         const result = await pool.query(
-            `INTERT INTO budget_items
+            `INSERT INTO budget_items
                 (couple_id, category, name, estimate, actual, paid, paid_by, status, notes, position)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING id, category, name,
-                estiamte::float, actual::float, paid::float,
+                estimate::float, actual::float, paid::float,
                 paid_by, status, notes, position, created_at, updated_at`,
             [
                 req.user.coupleId,
@@ -69,10 +68,15 @@ async function updateItems (req, res) {
     let idx = 1
 
     fields.forEach(field => {
-        if (req.body[field] == "undefined") {
-            const col = field === "paid_by" ? "paid_by" : field
-            updates.push(`${col} = $${idx}`)
-            values.push(req.body[field])
+        if (req.body[field] !== undefined) {
+            updates.push(`${field} = $${idx}`)
+
+            if (["estimate", "actual", "paid"].includes(field)) {
+                values.push(parseFloat(req.body[field]) || 0)
+            } else {
+                values.push(req.body[field])
+            }
+
             idx++
         }
     })
@@ -105,7 +109,7 @@ async function updateItems (req, res) {
 async function deleteItems (req, res) {
     try {
         const result = await pool.query(
-            `DELETE FOMR budget_items WHERE id = $1 AND couple_id = $2 RETURNING id`,
+            `DELETE FROM budget_items WHERE id = $1 AND couple_id = $2 RETURNING id`,
             [req.params.id, req.user.coupleId]
         )
         if (result.rows.length === 0) {
@@ -122,7 +126,7 @@ async function getSummary (req, res) {
     try {
         const result = await pool.query(
             `SELECT
-                COALESCE(SUM(estimate), 0)::float AS total_esitmate,
+                COALESCE(SUM(estimate), 0)::float AS total_estimate,
                 COALESCE(SUM(actual), 0)::float AS total_actual,
                 COALESCE(SUM(paid), 0)::float AS total_paid,
                 COUNT(*)::int AS total_items

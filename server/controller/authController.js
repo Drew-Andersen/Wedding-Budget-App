@@ -17,10 +17,10 @@ async function login(req, res) {
 
     try {
         const result = await pool.query(
-            `SELECT u.id, u.display_name, u.password_hash, u.role, u.couple_id, c.name AS couple_name, c.couple_code 
+            `SELECT u.id, u.username, u.display_name, u.password_hash, u.role, u.couple_id, c.name AS couple_name, c.couple_code 
             FROM users u
             JOIN couples c ON c.id = u.couple_id
-            WHERE u.username = u.couple_id`,
+            WHERE u.username = $1`,
             [username.toLowerCase()]
         )
 
@@ -28,7 +28,7 @@ async function login(req, res) {
             return res.status(401).json({ error: "Incorrect username or password" })
         }
 
-        const user = reault.rows[0]
+        const user = result.rows[0]
         const valid = await bcrypt.compare(password, user.password_hash)
         if (!valid) {
             return res.status(401).json({ error: "Incorrect username or password" })
@@ -74,8 +74,8 @@ async function register (req, res) {
     if (password.length < 6) {
         return res.status(400).json({ error: "Password must be at least 6 characters" })
     }
-    if (!/^[a-zA-Z0-9]+$/.test(username)) {
-        res.status(400).json({ error: "Username may only contain letters, numbers, - and _" })
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+        return res.status(400).json({ error: "Username may only contain letters, numbers, - and _" })
     }
 
     const client = await pool.connect()
@@ -122,10 +122,22 @@ async function register (req, res) {
 
         const passwordHash = await bcrypt.hash(password, 12)
         const userResult = await client.query(
-            `INSERT INTO users (username, display_name, password_hash, role, couple_id)
+            `INSERT INTO users (
+                username, 
+                display_name, 
+                password_hash, 
+                role, 
+                couple_id
+            )
             VALUES ($1, $2, $3, $4, $5)
             RETURNING id, username, display_name, role, couple_id`,
-            [username.toLowerCase()], displayName.trim(), passwordHash, role, coupleId
+            [
+                username.toLowerCase(), 
+                displayName.trim(), 
+                passwordHash, 
+                role, 
+                coupleId,
+            ]
         )
 
         await client.query("COMMIT")

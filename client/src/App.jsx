@@ -1,26 +1,57 @@
-import { useState } from 'react'
+import { useState } from "react"
+import { AuthProvider, useAuth } from "./hooks/useAuth"
+import LoginPage from "./components/LoginPage"
+import RegisterPage from "./components/RegisterPage"
+import BudgetApp from "./components/BudgetApp"
+
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+function Router() {
+  const { user, loading } = useAuth()
+  const [screen, setScreen] = useState("login"); // 'login' | 'register'
 
-  return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+  // Checking for an existing session cookie on first load
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background:
+            "linear-gradient(135deg, #3d2c25 0%, #6b4c3b 55%, #3d2c25 100%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: "1.2rem",
+            color: "#c9a96e",
+            fontStyle: "italic",
+          }}
+        >
+          Loading…
+        </div>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    )
+  }
+
+  // Logged in → show the budget app
+  if (user) return <BudgetApp />
+
+  // Not logged in → show auth screens
+  if (screen === "register") {
+    return <RegisterPage onGoLogin={() => setScreen("login")} />
+  }
+
+  return <LoginPage onGoRegister={() => setScreen("register")} />
 }
 
-export default App
-  
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router />
+    </AuthProvider>
+  )
+}
