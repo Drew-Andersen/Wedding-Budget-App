@@ -5,7 +5,7 @@ async function getItems (req, res) {
         const result = await pool.query(
             `SELECT id, category, name,
                 estimate::float, actual::float, paid::float,
-                paid_by, status, notes, position, created_at, updated_at
+                paid_by, status, notes, payment_schedule, position, created_at, updated_at
             FROM budget_items
             WHERE couple_id = $1
             ORDER BY position ASC, created_at ASC`,
@@ -19,11 +19,14 @@ async function getItems (req, res) {
 }
 
 async function postItems (req, res) {
-    const { category, name, estimate, actual, paid, paid_by, status, notes } = req.body
+    const { category, name, estimate, actual, paid, paid_by, status, notes, payment_schedule } = req.body
 
     if (!name?.trim()) {
         return res.status(400).json({ error: "Item name is required" })
     }
+
+    // Validate payment_schedule: must be an array of date strings
+    const schedule = Array.isArray(payment_schedule) ? payment_schedule : []
 
     try {
         const posResult = await pool.query(
@@ -34,11 +37,11 @@ async function postItems (req, res) {
 
         const result = await pool.query(
             `INSERT INTO budget_items
-                (couple_id, category, name, estimate, actual, paid, paid_by, status, notes, position)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                (couple_id, category, name, estimate, actual, paid, paid_by, status, notes, payment_schedule, position)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING id, category, name,
                 estimate::float, actual::float, paid::float,
-                paid_by, status, notes, position, created_at, updated_at`,
+                paid_by, status, notes, payment_schedule, position, created_at, updated_at`,
             [
                 req.user.coupleId,
                 category || "Miscellaneous",
@@ -49,6 +52,7 @@ async function postItems (req, res) {
                 paid_by || "Bride & Groom",
                 status || "pending",
                 notes || "",
+                JSON.stringify(schedule),
                 position
             ]
         )
@@ -61,7 +65,7 @@ async function postItems (req, res) {
 
 async function updateItems (req, res) {
     const { id } = req.params
-    const fields = ['category', 'name', 'estimate', "actual", "paid", "paid_by", "status", "notes", "position"]
+    const fields = ['category', 'name', 'estimate', "actual", "paid", "paid_by", "status", "notes", "payment_schedule", "position"]
 
     const updates = []
     const values = []
@@ -71,7 +75,9 @@ async function updateItems (req, res) {
         if (req.body[field] !== undefined) {
             updates.push(`${field} = $${idx}`)
 
-            if (["estimate", "actual", "paid"].includes(field)) {
+            if (field === "payment_schedule") {
+                values.push(JSON.stringify(Array.isArray(req.body[field]) ? req.body[field] : []))
+            } else if (["estimate", "actual", "paid"].includes(field)) {
                 values.push(parseFloat(req.body[field]) || 0)
             } else {
                 values.push(req.body[field])
@@ -93,7 +99,7 @@ async function updateItems (req, res) {
             WHERE id = $${idx} AND couple_id = $${idx + 1}
             RETURNING id, category, name,
                 estimate::float, actual::float, paid::float,
-                paid_by, status, notes, position, updated_at`,
+                paid_by, status, notes, payment_schedule, position, updated_at`,
                 values
         )
         if (result.rows.length === 0) {
