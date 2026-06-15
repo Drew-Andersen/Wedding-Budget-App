@@ -28,7 +28,7 @@ app.use("/api/budget", budgetRouter);
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 if (process.env.NODE_ENV === "production") {
-  const distPath = path.join(__dirname, "..", "dist");
+  const distPath = path.join(__dirname, "..", "client", "dist");
   app.use(express.static(distPath));
   // All non-API routes go to React
   app.get(/.*/, (req, res) => {
