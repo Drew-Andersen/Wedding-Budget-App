@@ -27,14 +27,14 @@ app.use("/api/budget", budgetRouter);
 // Health Check
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
-if (process.env.NODE_ENV === "production") {
-  const distPath = path.join(__dirname, "..", "client", "dist");
-  app.use(express.static(distPath));
-  // All non-API routes go to React
-  app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
-  });
-}
+// if (process.env.NODE_ENV === "production") {
+//   const distPath = path.join(__dirname, "..", "client", "dist");
+//   app.use(express.static(distPath));
+//   // All non-API routes go to React
+//   app.get(/.*/, (req, res) => {
+//     res.sendFile(path.join(distPath, "index.html"));
+//   });
+// }
 
 app.listen(PORT, () => {
   console.log(
