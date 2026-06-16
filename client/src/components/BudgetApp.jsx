@@ -172,7 +172,7 @@ export default function BudgetApp() {
         >
           {[
             {
-              label: "Total Budget",
+              label: "Total Estimate",
               val: formatCurrency(totalEst),
               accent: "#c9a96e",
             },
