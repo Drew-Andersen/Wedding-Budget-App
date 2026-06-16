@@ -220,7 +220,7 @@ export default function BudgetTable({
   const fAct = filtered.reduce((s, i) => s + (i.actual || 0), 0);
   const fPaid = filtered.reduce((s, i) => s + (i.paid || 0), 0);
   const fBal = filtered.reduce(
-    (s, i) => Math.max((i.actual || i.estimate || 0) - (i.paid || 0), 0) + 0,
+    (s, i) => Math.max((i.actual || i.estimate || 0) - (i.paid || 0), 0),
     0,
   );
 
