@@ -219,10 +219,14 @@ export default function BudgetTable({
   const fEst = filtered.reduce((s, i) => s + (i.estimate || 0), 0);
   const fAct = filtered.reduce((s, i) => s + (i.actual || 0), 0);
   const fPaid = filtered.reduce((s, i) => s + (i.paid || 0), 0);
-  const fBal = filtered.reduce(
-    (s, i) => Math.max((i.actual || i.estimate || 0) - (i.paid || 0), 0),
-    0,
-  );
+  const fBal = filtered.reduce((sum, item) => {
+    const balance = Math.max(
+      (item.actual || item.estimate || 0) - (item.paid || 0),
+      0,
+    );
+
+    return sum + balance;
+  }, 0);
 
   const HEADERS = [
     "Category",
