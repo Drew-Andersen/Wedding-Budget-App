@@ -92,6 +92,48 @@ const migrations = [
         ADD COLUMN IF NOT EXISTS payment_schedule JSONB NOT NULL DEFAULT '[]';
     `,
   },
+
+    // ── 003: Paartner invite code + 2 editor cap ──────────────────────────────
+    {
+      name: "003_invite_code_and_editor_cap",
+      sql: `
+        ALTER TABLE couples
+          ADD COLUMN IF NOT EXISTS invite_code TEXT UNIQUE;
+
+        -- Backfill invite codes for any couples created before this migration 
+        UPDATE couples
+          SET invite_code = UPPER(SUBSTRING(MD5(id::text || 'invite'), 1, 10))
+          WHERE invite_code IS NULL;
+
+        ALTER TABLE couples
+          ALTER COLUMN invite_code SET NOT NULL;
+        
+          --Enforce max 2 editors per couple at the database level
+          --(the API also checks this, but the trigger is the final backstop)
+          CREATE OR REPLACE FUNCTION enforce_editor_limit()
+          RETURNS TRIGGER AS $$
+          DECLARE 
+            editor_count INTEGER;
+          BEGIN
+            IF NEW.role = 'editor' THEN
+              SELECT COUNT (*) INTO editor_count
+              FROM users
+              WHERE couple_id = NEW.couple_id AND role = 'editor';
+
+              If editor_count >= 2 THEN
+                RAISE EXCEPTION 'editor_limit_reached';
+              END IF;
+            END IF;
+            RETURN NEW;
+          END;
+          $$ LANGUAGE plpgsql;
+
+          DROP TRIGGER IF EXISTS users_editor_limit ON users;
+          CREATE TRIGGER users_editor_limit
+            BEFORE INSERT ON users
+            FOR EACH ROW EXECUTE FUNCTION enforce_editor_limit();
+      `
+    },
 ];
 
 // ── Migration runner ──────────────────────────────────────────────────────────

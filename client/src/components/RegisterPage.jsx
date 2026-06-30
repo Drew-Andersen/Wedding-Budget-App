@@ -13,6 +13,7 @@ export default function RegisterPage({ onGoLogin }) {
   const [password2, setPassword2] = useState("")
   const [coupleName, setCoupleName] = useState("")
   const [coupleCode, setCoupleCode] = useState("")
+  const [inviteCode, setInviteCode] = useState("")
   const [showPw, setShowPw] = useState(false)
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -32,6 +33,8 @@ export default function RegisterPage({ onGoLogin }) {
     if (password !== password2) return (e.password2 = "Passwords don't match")
     if (role === "editor" && !coupleName.trim())
       return (e.coupleName = "Required")
+    if (role === "editor_join" && !inviteCode.trim()) 
+      return e.inviteCode = "Required"
     if (role === "viewer" && !coupleCode.trim())
       return (e.coupleCode = "Required")
 
@@ -51,6 +54,7 @@ export default function RegisterPage({ onGoLogin }) {
         password,
         role,
         coupleName: role === "editor" ? coupleName.trim() : undefined,
+        inviteCode: role === "editor_join" ? coupleCode.trim() : undefined,
         coupleCode: role === "viewer" ? coupleCode.trim() : undefined,
       });
       setSuccess(result)
@@ -58,6 +62,10 @@ export default function RegisterPage({ onGoLogin }) {
       const msg = err.message || "Registration failed"
       if (msg.toLowerCase().includes("username"))
         return setErrors({ username: msg })
+      else if (msg.toLowerCase().includes("two editors"))
+        return setErrors({ inviteCode: msg })
+      else if (msg.toLowerCase().includes("invite"))
+        return setErrors({ inviteCode: msg })
       else if (msg.toLowerCase().includes("code"))
         return setErrors({ coupleCode: msg })
       else return setErrors({ general: msg })
@@ -139,7 +147,63 @@ export default function RegisterPage({ onGoLogin }) {
                   Anyone with this code can register as a viewer
                 </div>
               </div>
+              <div
+                style={{
+                  background: "#fdf0f0",
+                  border: "1.5px solid #d9a8a0",
+                  borderRadius: 12,
+                  padding: "16px 20px",
+                  marginBottom: 20,
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.68rem",
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: "#a87a6e",
+                    marginBottom: 6,
+                  }}
+                >
+                  Invite code - share privately with your partner ONLY
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Cormorant Garamond', sans-serif",
+                    fontSize: "1.7rem",
+                    letterSpacing: "0.2em",
+                    color: "#8a4a3b",
+                    fontWeight: 600,
+                  }}
+                >
+                  {success.inviteCode}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.73rem",
+                    color: "#a87a6e",
+                    marginTop: 6,
+                  }}
+                >
+                  This code grants full editing access - dont&apos;t post it publicly
+                </div>
+              </div>
             </>
+          ) : role === "editor_join" ? (
+            <p
+              style={{
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "0.88rem",
+                color: "#6b4c3b",
+                marginBottom: 20,
+                lineHeight: 1.6,
+              }}
+            >
+              You&apos;re now a co-editor on the budget for {" "}
+              <strong>{success.coupleName}</strong>.
+            </p>
           ) : (
             <p
               style={{
@@ -197,7 +261,7 @@ export default function RegisterPage({ onGoLogin }) {
             margin: "20px 0",
           }}
         >
-          {/* Getting Married Button */}
+          {/* Create a brand new wedding budget */}
           <button
             className={`role-card${role === "editor" ? " selected" : ""}`}
             onClick={() => setRole("editor")}
@@ -223,12 +287,46 @@ export default function RegisterPage({ onGoLogin }) {
                     lineHeight: 1.4,
                   }}
                 >
-                  Create your wedding budget. You&apos;ll get a shareable code
-                  for family to view it.
+                  Start a new wedding budget. You&apos;ll get a couple code for 
+                  family and an invite code for your partner.
                 </div>
               </div>
             </div>
           </button>
+
+          {/* Join partner as a co-editor */}
+          <button
+            className={`role-card${role === "editor_join" ? " selected" : ""}`}
+            onClick={() => setRole("editor_join")}
+          >
+            <div style={{display: "flex", alignItems: "center", gap: 14}}>
+                  <div style={{fontSize: "2rem", lineHeight: 1}}>🤝</div>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Cormorant Garamond', sans-serif",
+                        fontSize: "1.15rem",
+                        color: "#3d2c25",
+                        marginBottom: 3,
+                      }}
+                    >
+                      My partner already started one
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: "0.78rem",
+                        color: "#a08070",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      Join as a co-editor using the private invite code your
+                      partner shared with you.
+                    </div>
+                  </div>
+            </div>
+          </button>
+
           {/* Viewer Button */}
           <button
             className={`role-card${role === "viewer" ? " selected" : ""}`}
@@ -288,6 +386,20 @@ export default function RegisterPage({ onGoLogin }) {
   }
 
   // Step 2
+  const stepHeading = 
+    role === "editor"
+      ? "💍 Create your wedding"
+      : role === "editor_join"
+        ? "🤝 Join as co-editor"
+        : "👨‍👩‍👧 Join a wedding"
+  
+  const stepSubtext = 
+    role === "editor" 
+      ? "You'll be able o edit the budget, and you'll get two codes to share."
+      : role === "editor_join"
+        ? "Enter the private invite code you partner gave you."
+        : "Enter the couple code the couple gave you."
+
   return (
     <AuthShell>
       <div
@@ -320,7 +432,7 @@ export default function RegisterPage({ onGoLogin }) {
               color: "#3d2c25",
             }}
           >
-            {role === "editor" ? "💍 Create your wedding" : "👨‍👩‍👧 Join a wedding"}
+            {stepHeading}
           </h2>
           <p
             style={{
@@ -329,9 +441,7 @@ export default function RegisterPage({ onGoLogin }) {
               color: "#a08070",
             }}
           >
-            {role === "editor"
-              ? "You'll be able to edit the budget and share your code with family."
-              : "Enter the couple code the couple gave you."}
+            {stepSubtext}
           </p>
         </div>
       </div>
@@ -428,6 +538,32 @@ export default function RegisterPage({ onGoLogin }) {
             />
           </Field>
         )}
+
+        {role === "editor_join" && (
+          <Field label="Invite code" error={errors.inviteCode}>
+            <input 
+              className={`auth-input ${errors.inviteCode ? "error" : ""}`}
+              value={inviteCode}
+              placeholder="e.g. EMMAJACKINVITE123456"
+              onChange={(e) => {
+                setInviteCode(e.target.value.toUpperCase())
+                clearError("inviteCode")
+              }}
+            />
+            <div
+              style={{
+                fontSize: "0.7 rem",
+                color: "#b5998a",
+                fontFamily: "'Jost', sans-serif",
+                marginTop: 4,
+              }}
+            >
+              This is different from the couple code - ask your partner for 
+              the private invite code shown when they created the account.
+            </div>
+          </Field>
+        )}
+
         {role === "viewer" && (
           <Field label="Couple code" error={errors.coupleCode}>
             <input

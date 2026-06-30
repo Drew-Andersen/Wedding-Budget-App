@@ -9,6 +9,12 @@ const COOKIE_OPTS = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 }
 
+function generateCode(base, length = 4) {
+    const cleaned = base.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 8)
+    const suffix = String(Math.floor(Math.random() * 10 ** length)).padStart(length, '0')
+    return cleaned + suffix
+}
+
 async function login(req, res) {
     const { username, password } = req.body
     if (!username || !password) {
@@ -17,7 +23,7 @@ async function login(req, res) {
 
     try {
         const result = await pool.query(
-            `SELECT u.id, u.username, u.display_name, u.password_hash, u.role, u.couple_id, c.name AS couple_name, c.couple_code 
+            `SELECT u.id, u.username, u.display_name, u.password_hash, u.role, u.couple_id, c.name AS couple_name, c.couple_code , c.invite_code
             FROM users u
             JOIN couples c ON c.id = u.couple_id
             WHERE u.username = $1`,
@@ -41,7 +47,9 @@ async function login(req, res) {
             role: user.role,
             coupleId: user.couple_id,
             coupleName: user.couple_name,
-            coupleCode: user.couple_code
+            coupleCode: user.couple_code,
+            // Only editors get the invite code block - viewers never see it
+            inviteCode: user.role === 'editor' ? user.invite_code : undefined,
         }
 
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' })
@@ -63,12 +71,12 @@ function getMe (req, res) {
 }
 
 async function register (req, res) {
-    const { username, displayName, password, role, coupleName, coupleCode } = req.body
+    const { username, displayName, password, role, coupleName, coupleCode, inviteCode } = req.body
 
     if (!username || !displayName || !password || !role) {
         return res.status(400).json({ error: "Missing required fields" })
     }
-    if (!['editor', 'viewer'].includes(role)) {
+    if (!['editor', 'editor_join', 'viewer'].includes(role)) {
         return res.status(400).json({ error: "Invalid role" })
     }
     if (password.length < 6) {
@@ -84,29 +92,67 @@ async function register (req, res) {
 
         const existing = await client.query(`SELECT id FROM users WHERE username = $1`, [username.toLowerCase()])
         if (existing.rows.length > 0) {
+            await client.query('ROLLBACK')
             return res.status(409).json({ error: "Username already taken" })
         }
 
         let coupleId
+        let dbRole = 'editor'
+        let responseCoupleCode = null
+        let responseInviteCode = null
+        let responseCoupleName = null
 
         if (role === 'editor') {
+            // ---- Create a brand new wedding budget ----
             if (!coupleName?.trim()) {
+                await client.query('ROLLBACK')
                 return res.status(400).json({ error: "Couple name is required" })
             }
 
-            // Generate a unique couple code (first 8 chars of name + 4 random digits)
-            const base = coupleName.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0,8)
-            const suffix = String(Math.floor(1000 + Math.random() * 9000))
-            const newCode = base + suffix
+            const newCoupleCode = generateCode(coupleName, 4)
+            const newInviteCode = generateCode(coupleName + 'invite', 6)
 
             const coupleResult = await client.query(
-                `INSERT INTO couples (name, couple_code) VALUES ($1, $2) RETURNING id, couple_code`,
-                [coupleName.trim(), newCode]
+                `INSERT INTO couples (name, couple_code, invite_code)
+                VALUES ($1, $2, $3)
+                RETURNING id, name, couple_code, invite_code`,
+                [coupleName.trim(), newCoupleCode, newInviteCode]
             )
             coupleId = coupleResult.rows[0].id
-            req._coupleCode = coupleResult.rows[0].couple_code
+            responseCoupleCode = coupleResult.rows[0].couple_code
+            responseInviteCode = coupleResult.rows[0].invite_code
+            responseCoupleName = coupleResult.rows[0].name  
+
+        } else if (role === 'editor_join'){
+            //   ---- Join an EXISTING wedding as a 2nd editor ----
+            if (!inviteCode?.trim()) {
+                await client.query('ROLLBACK')
+                return res.status(400).json({ error: "Invite code is required" })
+            }
+
+            const coupleResult = await client.query(
+                `SELECT id, name FROM couples WHERE UPPER(invite_code) = UPPER($1)`,
+                [inviteCode.trim()]
+            )
+            if (coupleResult.rows.length === 0) {
+                await client.query("ROLLBACK")
+                return res.status(404).json({ error: "No wedding found with that invite code" })
+            }
+            coupleId = coupleResult.rows[0].id
+            responseCoupleName = coupleResult.rows[0].name
+
+            const countResult = await client.query(
+                `SELECT COUNT(*) AS count FROM users WHERE couple_id = $1 AND role = 'editor'`,
+                [coupleId]
+            )
+            if (parseInt(countResult.rows[0].count, 10) >= 2) {
+                await client.query('ROLLBACK')
+                return res.status(409).json({ error: "This wedding already has 2 editors" })
+            }
+
         } else {
             if (!coupleCode?.trim()) {
+                await client.query('ROLLBACK')
                 return res.status(400).json({ error: "Couple code is required" })
             }
             const coupleResult = await client.query(
@@ -114,44 +160,51 @@ async function register (req, res) {
                 [coupleCode.trim()]
             )
             if (coupleResult.rows.length === 0) {
+                await client.query("ROLLBACK")
                 return res.status(404).json({ error: "No wedding found with that code" })
             }
             coupleId = coupleResult.rows[0].id
-            req._coupleName = coupleResult.rows[0].name
+            dbRole = 'viewer'
+            responseCoupleName = coupleResult.rows[0].name
         }
 
         const passwordHash = await bcrypt.hash(password, 12)
-        const userResult = await client.query(
-            `INSERT INTO users (
+
+        try {
+            await client.query(
+                `INSERT INTO users (
                 username, 
                 display_name, 
                 password_hash, 
                 role, 
                 couple_id
+                )
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, username, display_name, role, couple_id`,
+                [
+                    username.toLowerCase(), 
+                    displayName.trim(), 
+                    passwordHash, 
+                    dbRole, 
+                    coupleId,
+                ]
             )
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, username, display_name, role, couple_id`,
-            [
-                username.toLowerCase(), 
-                displayName.trim(), 
-                passwordHash, 
-                role, 
-                coupleId,
-            ]
-        )
+        } catch (err) {
+            if (err.message?.includes('editor_limit_reached')) {
+                await client.query('ROLLBACK')
+                return res.status(409).json({ error: "This wedding already has 2 editors"})
+            }
+            throw err
+        }
 
-        await client.query("COMMIT")
-
-        const user = userResult.rows[0]
-
-        const coupleRow = await pool.query(`SELECT name, couple_code FROM couples WHERE id = $1`, [coupleId])
-        const couple = coupleRow.rows[0]
+        await client.query('COMMIT')
 
         res.json({
             message: "Account created",
-            coupleCode: couple.couple_code,
-            coupleName: couple.name,
-            role
+            role: dbRole,
+            coupleName: responseCoupleName,
+            coupleCode: responseCoupleCode,
+            inviteCode: responseInviteCode,
         })
     } catch (err) {
         await client.query("ROLLBACK")

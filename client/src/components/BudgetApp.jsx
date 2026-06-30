@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useBudget } from "../hooks/useBudget";
 import { formatCurrency } from "../lib/constants";
@@ -10,6 +10,9 @@ export default function BudgetApp() {
   const { items, loading, error, createItem, updateItem, deleteItem } =
     useBudget(user);
   const [activeTab, setActiveTab] = useState("tracker");
+  const [inviteRevealed, setInviteRevealed] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const inviteHideTimer = useRef(null);
 
   const isEditor = user.role === "editor";
   const totalEst = items.reduce((s, i) => s + (i.estimate || 0), 0);
@@ -19,6 +22,27 @@ export default function BudgetApp() {
   const progressPct =
     totalEst > 0 ? Math.min((totalActual / totalEst) * 100, 100) : 0;
   const overBudget = totalActual > totalEst && totalEst > 0;
+
+  async function copyInviteToClipboard() {
+    if (!user.inviteCode) return;
+    try {
+      await navigator.clipboard.writeText(user.inviteCode);
+      setInviteCopied(true);
+      setTimeout(() => setInviteCopied(false), 1500);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function handleInviteClick () {
+    if (!inviteRevealed) {
+      setInviteRevealed(true);
+      clearTimeout(inviteHideTimer.current);
+      inviteHideTimer.current = setTimeout(() => setInviteRevealed(false), 4000)
+      return;
+    }
+    copyInviteToClipboard();
+  }
 
   return (
     <div
@@ -104,6 +128,59 @@ export default function BudgetApp() {
                 }}
               >
                 {user.coupleCode}
+              </span>
+            </div>
+          )}
+          {isEditor && user.inviteCode && (
+            <div
+              onMouseEnter={() => {
+                clearInterval(inviteHideTimer.current);
+                setInviteRevealed(true);
+              }}
+              onMouseLeave={() => setInviteRevealed(false)}
+              onClick={handleInviteClick}
+              title={
+                inviteRevealed
+                  ? "Click to copy - share with your partner only"
+                  : "Tap to reveal - share with your partner only"
+              }
+              style={{
+                background: "rgba(196,114,42,0.12)",
+                border: "1px solid rgba(196,114,42,0.35)",
+                borderRadius: 8,
+                padding: "3px 10px",
+                cursor: "pointer",
+                userSelect: "none",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.62rem",
+                  color: "#c4722a",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Invite:{" "}
+              </span>
+              <span
+                style={{
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.8rem",
+                  color: "#e0935a",
+                  fontWeight: 500,
+                  letterSpacing: inviteRevealed ? "0.1em" : "0.25em",
+                  transition: "letter-spacing 0.15s ease",
+                }}
+              >
+                {inviteCopied
+                  ? "Copied!"
+                  : inviteRevealed
+                    ? user.inviteCode
+                    : "•".repeat(Math.max(user.inviteCode.length, 6))
+                }
               </span>
             </div>
           )}
