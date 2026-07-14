@@ -135,15 +135,15 @@ const migrations = [
       `
     },
     // // ── 004: Reset the Database ──────────────────────────────────────────
-    // {
-    //   name: "004_reset",
-    //   sql: `
-    //     TRUNCATE TABLE
-    //       users,
-    //       budget_items,
-    //       couples
-    //   `,
-    // },
+    {
+      name: "004_reset",
+      sql: `
+        TRUNCATE TABLE
+          users,
+          budget_items,
+          couples
+      `,
+    },
 ];
 
 // ── Migration runner ──────────────────────────────────────────────────────────
