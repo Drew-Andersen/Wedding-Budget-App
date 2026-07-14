@@ -550,6 +550,7 @@ export default function RegisterPage({ onGoLogin }) {
                 clearError("inviteCode")
               }}
             />
+            {console.log(inviteCode)}
             <div
               style={{
                 fontSize: "0.7 rem",
