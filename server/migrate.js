@@ -134,16 +134,16 @@ const migrations = [
             FOR EACH ROW EXECUTE FUNCTION enforce_editor_limit();
       `
     },
-    // ── 004: Reset the Database ──────────────────────────────────────────
-    {
-      name: "004_reset",
-      sql: `
-        TRUNCATE TABLE
-          users,
-          budget_items,
-          couples
-      `,
-    },
+    // // ── 004: Reset the Database ──────────────────────────────────────────
+    // {
+    //   name: "004_reset",
+    //   sql: `
+    //     TRUNCATE TABLE
+    //       users,
+    //       budget_items,
+    //       couples
+    //   `,
+    // },
 ];
 
 // ── Migration runner ──────────────────────────────────────────────────────────
