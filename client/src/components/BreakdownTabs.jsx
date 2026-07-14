@@ -127,7 +127,7 @@ export function ByPayerTab({ items }) {
             </div>
 
             {/* Progress bar */}
-            <div
+            {/* <div
               style={{
                 height: 4,
                 background: "#f0e6de",
@@ -145,7 +145,7 @@ export function ByPayerTab({ items }) {
                   transition: "width 0.5s",
                 }}
               />
-            </div>
+            </div> */}
 
             {/* Item list */}
             {payerItems.map((item) => (

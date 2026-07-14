@@ -303,7 +303,7 @@ export default function BudgetApp() {
         </div>
 
         {/* Progress bar */}
-        <div style={{ maxWidth: 460, margin: "16px auto 0" }}>
+        {/* <div style={{ maxWidth: 460, margin: "16px auto 0" }}>
           <div
             style={{
               display: "flex",
@@ -341,7 +341,7 @@ export default function BudgetApp() {
               }}
             />
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* ── Tabs ───────────────────────────────────────────────────────────── */}
