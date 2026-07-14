@@ -54,7 +54,7 @@ export default function RegisterPage({ onGoLogin }) {
         password,
         role,
         coupleName: role === "editor" ? coupleName.trim() : undefined,
-        inviteCode: role === "editor_join" ? coupleCode.trim() : undefined,
+        inviteCode: role === "editor_join" ? inviteCode.trim() : undefined,
         coupleCode: role === "viewer" ? coupleCode.trim() : undefined,
       });
       setSuccess(result)
