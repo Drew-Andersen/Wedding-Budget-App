@@ -140,7 +140,6 @@ const migrations = [
       sql: `
         TRUNCATE TABLE
           users,
-          budgets,
           budget_items,
           couples
       `,
