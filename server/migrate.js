@@ -138,7 +138,7 @@ const migrations = [
     {
       name: "004_reset",
       sql: `
-        TURNCATE TABLE
+        TRUNCATE TABLE
           users,
           budgets,
           budget_items,
