@@ -463,7 +463,7 @@ export default function BudgetTable({
                       padding: HP,
                       textAlign: "left",
                       fontSize: "0.63rem",
-                      letterSpacing: "0.14em",
+                      letterSpacing: "0.1em",
                       textTransform: "uppercase",
                       color: "#b5998a",
                       fontFamily: "'Jost',sans-serif",
@@ -471,9 +471,9 @@ export default function BudgetTable({
                       whiteSpace: "nowrap",
                       borderBottom: "1px solid #f0e6de",
                       background:
-                        h === "Total Payments" ||
-                        h === "Payments Made" ||
-                        h === "Next Payment Due"
+                        h === "Pymts" ||
+                        h === "Pymts Made" ||
+                        h === "Next Due"
                           ? "#fdf0e6"
                           : undefined,
                     }}
@@ -556,10 +556,11 @@ export default function BudgetTable({
                           style={{
                             background: "#f4ede8",
                             borderRadius: 99,
-                            padding: "2px 10px",
+                            padding: "2px 8px",
                             fontSize: "0.73rem",
                             color: "#7a5045",
                             fontFamily: "'Jost',sans-serif",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {item.category}
@@ -607,12 +608,13 @@ export default function BudgetTable({
                       ) : (
                         <span
                           style={{
-                            fontSize: "0.76rem",
+                            fontSize: "0.73rem",
                             fontFamily: "'Jost',sans-serif",
                             color: "#6b7a6b",
                             background: "#edf4ee",
                             borderRadius: 99,
-                            padding: "2px 9px",
+                            padding: "2px 8px",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {item.paid_by}
@@ -634,7 +636,7 @@ export default function BudgetTable({
                               parseFloat(e.target.value) || 0,
                             )
                           }
-                          style={{ width: 90 }}
+                          style={{ width: 80 }}
                         />
                       ) : (
                         <span
@@ -642,6 +644,7 @@ export default function BudgetTable({
                             fontFamily: "'Jost',sans-serif",
                             fontSize: "0.87rem",
                             color: "#5a3e31",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {formatCurrency(item.estimate)}
@@ -663,7 +666,7 @@ export default function BudgetTable({
                               parseFloat(e.target.value) || 0,
                             )
                           }
-                          style={{ width: 90 }}
+                          style={{ width: 80 }}
                         />
                       ) : (
                         <span
@@ -671,6 +674,7 @@ export default function BudgetTable({
                             fontFamily: "'Jost',sans-serif",
                             fontSize: "0.87rem",
                             color: item.actual ? "#3d2c25" : "#c4a898",
+                            whiteSpace: "nowrap"
                           }}
                         >
                           {item.actual ? formatCurrency(item.actual) : "—"}
@@ -687,6 +691,7 @@ export default function BudgetTable({
                             fontSize: "0.82rem",
                             fontWeight: 600,
                             color: diff > 0 ? "#c47b7b" : "#5a9470",
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {diff > 0 ? "+" : ""}
@@ -697,7 +702,7 @@ export default function BudgetTable({
                       )}
                     </td>
 
-                    {/* Paid to Date (dollar amount) */}
+                    {/* Paid to Date */}
                     <td style={{ padding: CP }}>
                       {isEditing && isEditor ? (
                         <input
@@ -711,7 +716,7 @@ export default function BudgetTable({
                               parseFloat(e.target.value) || 0,
                             )
                           }
-                          style={{ width: 90 }}
+                          style={{ width: 80 }}
                         />
                       ) : (
                         <span
@@ -720,6 +725,7 @@ export default function BudgetTable({
                             fontSize: "0.87rem",
                             color: paidAmt > 0 ? "#5a8a70" : "#c4a898",
                             fontWeight: paidAmt > 0 ? 500 : 400,
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {paidAmt > 0 ? formatCurrency(paidAmt) : "—"}
@@ -740,6 +746,7 @@ export default function BudgetTable({
                                 ? "#c4722a"
                                 : "#c4a898",
                           fontWeight: balance > 0 ? 500 : 400,
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {balance === 0 && paidAmt > 0
@@ -879,7 +886,7 @@ export default function BudgetTable({
                             color: STATUS_CONFIG[item.status]?.color,
                             background: `${STATUS_CONFIG[item.status]?.color}18`,
                             borderRadius: 99,
-                            padding: "3px 9px",
+                            padding: "3px 8px",
                             whiteSpace: "nowrap",
                           }}
                         >
@@ -920,7 +927,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>
+                    <td style={{ padding: "10px 6px", whiteSpace: "nowrap" }}>
                       {isEditor && (
                         <>
                           <button
@@ -932,7 +939,7 @@ export default function BudgetTable({
                               color: isEditing ? "white" : "#c9a96e",
                               border: "1px solid #c9a96e",
                               borderRadius: 99,
-                              padding: "3px 12px",
+                              padding: "3px 10px",
                               fontSize: "0.7rem",
                               marginRight: 4,
                             }}
@@ -947,7 +954,7 @@ export default function BudgetTable({
                               border: "none",
                               color: "#c47b7b",
                               fontSize: "0.8rem",
-                              padding: "3px 6px",
+                              padding: "3px 4px",
                             }}
                           >
                             ✕
