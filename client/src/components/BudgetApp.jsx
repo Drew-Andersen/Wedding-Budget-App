@@ -19,8 +19,8 @@ export default function BudgetApp() {
   const totalActual = items.reduce((s, i) => s + (i.actual || 0), 0);
   const totalPaid = items.reduce((s, i) => s + (i.paid || 0), 0);
   const totalBal = Math.max((totalActual || totalEst) - totalPaid, 0);
-  const progressPct =
-    totalEst > 0 ? Math.min((totalActual / totalEst) * 100, 100) : 0;
+  // const progressPct =
+  //   totalEst > 0 ? Math.min((totalActual / totalEst) * 100, 100) : 0;
   const overBudget = totalActual > totalEst && totalEst > 0;
 
   async function copyInviteToClipboard() {
@@ -371,7 +371,7 @@ export default function BudgetApp() {
 
       {/* ── Content ────────────────────────────────────────────────────────── */}
       <div
-        style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px 60px" }}
+        style={{ maxWidtw: "calc(100vh - 100px)", margin: "0 auto", padding: "24px 50px 60px" }}
       >
         {loading && (
           <div
