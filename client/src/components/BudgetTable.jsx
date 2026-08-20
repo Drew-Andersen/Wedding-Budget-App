@@ -29,20 +29,12 @@ function DiffBadge({ estimate, actual }) {
   );
 }
 
-/**
- * Given a sorted array of "YYYY-MM-DD" date strings and today's date string,
- * returns { total, paidCount, nextDue }.
- *
- * A payment is considered "paid" if its date is strictly before today
- * (i.e. the due date has already passed).  Today's date itself is still "due".
- */
 function derivePaymentInfo(schedule, todayStr) {
   if (!Array.isArray(schedule) || schedule.length === 0) {
     return { total: 0, paidCount: 0, nextDue: null };
   }
   const sorted = [...schedule].sort();
   const total = sorted.length;
-  // Dates strictly less than today are considered paid
   const paidCount = sorted.filter((d) => d < todayStr).length;
   const upcoming = sorted.filter((d) => d >= todayStr);
   const nextDue = upcoming.length > 0 ? upcoming[0] : null;
@@ -51,7 +43,6 @@ function derivePaymentInfo(schedule, todayStr) {
 
 function formatDate(dateStr) {
   if (!dateStr) return null;
-  // Parse as local date to avoid UTC offset shifting the day
   const [y, m, d] = dateStr.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("en-US", {
     month: "numeric",
@@ -60,7 +51,6 @@ function formatDate(dateStr) {
   });
 }
 
-// Today as YYYY-MM-DD in local time
 function todayString() {
   const now = new Date();
   const y = now.getFullYear();
@@ -150,6 +140,8 @@ function ScheduleEditor({ schedule, onChange }) {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
+const CP = "10px 8px"
+const HP = "12px 8px"
 
 export default function BudgetTable({
   items,
@@ -468,7 +460,7 @@ export default function BudgetTable({
                   <th
                     key={i}
                     style={{
-                      padding: "12px 14px",
+                      padding: HP,
                       textAlign: "left",
                       fontSize: "0.63rem",
                       letterSpacing: "0.14em",
@@ -478,7 +470,6 @@ export default function BudgetTable({
                       fontWeight: 500,
                       whiteSpace: "nowrap",
                       borderBottom: "1px solid #f0e6de",
-                      // Lightly highlight the three new columns
                       background:
                         h === "Total Payments" ||
                         h === "Payments Made" ||
@@ -547,7 +538,7 @@ export default function BudgetTable({
                     }}
                   >
                     {/* Category */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       {isEditing && isEditor ? (
                         <select
                           className="chip-select"
@@ -577,7 +568,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Name */}
-                    <td style={{ padding: "10px 14px", minWidth: 130 }}>
+                    <td style={{ padding: CP, minWidth: 110 }}>
                       {isEditing && isEditor ? (
                         <input
                           className="edit-input"
@@ -600,7 +591,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Paid By */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       {isEditing && isEditor ? (
                         <select
                           className="chip-select"
@@ -630,7 +621,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Estimate */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       {isEditing && isEditor ? (
                         <input
                           className="edit-input"
@@ -659,7 +650,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Actual */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       {isEditing && isEditor ? (
                         <input
                           className="edit-input"
@@ -688,7 +679,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Difference */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       {item.actual ? (
                         <span
                           style={{
@@ -707,7 +698,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Paid to Date (dollar amount) */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       {isEditing && isEditor ? (
                         <input
                           className="edit-input"
@@ -737,7 +728,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Balance Due */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       <span
                         style={{
                           fontFamily: "'Jost',sans-serif",
@@ -759,10 +750,10 @@ export default function BudgetTable({
                       </span>
                     </td>
 
-                    {/* ── NEW: Total Payments ── */}
+                    {/* ──  Total Payments ── */}
                     <td
                       style={{
-                        padding: "10px 14px",
+                        padding: CP,
                         background: idx % 2 === 0 ? "#fffaf6" : "#fdf6f0",
                       }}
                     >
@@ -786,10 +777,10 @@ export default function BudgetTable({
                       )}
                     </td>
 
-                    {/* ── NEW: Payments Made ── */}
+                    {/* ── Payments Made ── */}
                     <td
                       style={{
-                        padding: "10px 14px",
+                        padding: CP,
                         background: idx % 2 === 0 ? "#fffaf6" : "#fdf6f0",
                       }}
                     >
@@ -814,10 +805,10 @@ export default function BudgetTable({
                       )}
                     </td>
 
-                    {/* ── NEW: Next Payment Due ── */}
+                    {/* ── Next Payment Due ── */}
                     <td
                       style={{
-                        padding: "10px 14px",
+                        padding: CP,
                         background: idx % 2 === 0 ? "#fffaf6" : "#fdf6f0",
                         whiteSpace: "nowrap",
                       }}
@@ -865,7 +856,7 @@ export default function BudgetTable({
                     </td>
 
                     {/* Status */}
-                    <td style={{ padding: "10px 14px" }}>
+                    <td style={{ padding: CP }}>
                       {isEditing && isEditor ? (
                         <select
                           className="chip-select"
@@ -898,27 +889,33 @@ export default function BudgetTable({
                     </td>
 
                     {/* Notes */}
-                    <td style={{ padding: "10px 14px", maxWidth: 160 }}>
+                    <td style={{ padding: CP, minWidth: 240 ,maxWidth: 380 }}>
                       {isEditing && isEditor ? (
-                        <input
+                        <textarea
                           className="edit-input"
                           defaultValue={item.notes}
                           onBlur={(e) =>
                             handleUpdate(item.id, "notes", e.target.value)
                           }
                           placeholder="Add note…"
+                          rows={3}
+                          style={{ resize: "vertical", width: "100%", fontSize: "0.76rem", lineHeight: 1.5, fontFamily: "'Jost', sans-serif" }}
                         />
                       ) : (
-                        <span
+                        <p
                           style={{
                             fontFamily: "'Jost',sans-serif",
                             fontSize: "0.76rem",
                             color: "#a08070",
                             fontStyle: "italic",
+                            margin: 0, 
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            lineHeight: 1.5,
                           }}
                         >
                           {item.notes || ""}
-                        </span>
+                        </p>
                       )}
                     </td>
 
@@ -972,7 +969,7 @@ export default function BudgetTable({
                 <td
                   colSpan={3}
                   style={{
-                    padding: "12px 14px",
+                    padding: "12px 8px",
                     fontFamily: "'Cormorant Garamond',serif",
                     fontSize: "1rem",
                     color: "#6b4c3b",
@@ -983,7 +980,7 @@ export default function BudgetTable({
                 </td>
                 <td
                   style={{
-                    padding: "12px 14px",
+                    padding: "12px 8px",
                     fontFamily: "'Jost',sans-serif",
                     fontWeight: 600,
                     color: "#5a3e31",
@@ -993,7 +990,7 @@ export default function BudgetTable({
                 </td>
                 <td
                   style={{
-                    padding: "12px 14px",
+                    padding: "12px 8px",
                     fontFamily: "'Jost',sans-serif",
                     fontWeight: 600,
                   }}
@@ -1005,7 +1002,7 @@ export default function BudgetTable({
                 </td>
                 <td
                   style={{
-                    padding: "12px 14px",
+                    padding: "12px 8px",
                     fontFamily: "'Jost',sans-serif",
                     fontWeight: 600,
                     color: "#5a8a70",
@@ -1015,7 +1012,7 @@ export default function BudgetTable({
                 </td>
                 <td
                   style={{
-                    padding: "12px 14px",
+                    padding: "12px 8px",
                     fontFamily: "'Jost',sans-serif",
                     fontWeight: 600,
                     color: "#c4722a",
